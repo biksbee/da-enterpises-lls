@@ -42,7 +42,7 @@ export class AuthController {
     }
 
     // TODO мб добавить сессии поле active которое будет становиться false после logout
-    @Get('/logout/', true)
+    @Get('/logout', true)
     async logout(req: Request, res: Response, next: NextFunction) {
         return res
             .status(200)
