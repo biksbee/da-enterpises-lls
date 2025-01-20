@@ -11,7 +11,7 @@
         "esModuleInterop": true,
         "baseUrl": ".",
         "incremental": true,
-        "skipLibCheck": true,
+        "skipLibCheck": true
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]

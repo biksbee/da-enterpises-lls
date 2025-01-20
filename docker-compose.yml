@@ -1,6 +1,8 @@
 services:
   app:
-    build: src
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: express-app
     ports:
       - "3501:3501"
