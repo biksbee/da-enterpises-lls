@@ -25,7 +25,6 @@ export class FileStorageController {
 
     @Get('/download/:id', false)
     async download(req: Request, res: Response, next: NextFunction) {
-        //TODO уточнить статус при успешном скачивании
         return res
             .status(200)
             .json(await this.fileStorageService.download(Number(req.params.id), next))
