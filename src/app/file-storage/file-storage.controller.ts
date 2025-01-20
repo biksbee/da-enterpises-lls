@@ -3,9 +3,11 @@ import {registerRoutes} from "../../common/utils/route.utils";
 import {FileStorageService} from "./file-storage.service";
 import {Delete, Get, Post, Put} from "../../common/decorators/method.decorators";
 import {upload} from "../../common/middleware/multer.middleware";
+import path from "path";
 
 export class FileStorageController {
     public router: Router;
+    private readonly storagePath = path.resolve(__dirname, '../../../uploads');
 
     constructor(
         private fileStorageService: FileStorageService
@@ -28,6 +30,14 @@ export class FileStorageController {
         return res
             .status(200)
             .json(await this.fileStorageService.download(Number(req.params.id), next))
+    }
+
+    @Get('/upload/:id', false)
+    async getFile(req: Request, res: Response, next: NextFunction) {
+        const id = Number(req.params.id)
+        const file = await this.fileStorageService.getById(id, next);
+        const filePath = path.join(this.storagePath, file.fileName);
+        res.sendFile(filePath)
     }
 
     @Get('/:id', false)
