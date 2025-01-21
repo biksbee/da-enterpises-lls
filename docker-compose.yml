@@ -1,4 +1,17 @@
 services:
+  db:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: cat8apple10wheel
+      MYSQL_DATABASE: da-enterprises-llc
+    ports:
+      - "3316:3306"
+    command: --character-set-server=utf8 --collation-server=utf8_general_ci
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
   app:
     build:
       context: .
@@ -11,7 +24,7 @@ services:
       - /app/node_modules
     environment:
       - PORT=3501
-      - DATABASE_PORT=3306
+      - DATABASE_PORT=3316
       - DATABASE_HOST=db
       - DATABASE_USER=root
       - DATABASE_PASSWORD=cat8apple10wheel
@@ -24,19 +37,7 @@ services:
       - db
     networks:
       - app-network
-
-  db:
-    image: mysql:8.0
-    container_name: mysql-container
-    environment:
-      MYSQL_ROOT_PASSWORD: cat8apple10wheel
-      MYSQL_DATABASE: da-enterprises-llc
-    ports:
-      - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-    networks:
-      - app-network
+    command: ["sh", "-c", "npm install && npm run build && npm start"]
 
 volumes:
   db_data:

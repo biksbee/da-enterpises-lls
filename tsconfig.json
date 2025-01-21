@@ -4,13 +4,9 @@
         "module": "commonjs",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "allowSyntheticDefaultImports": true,
-        "sourceMap": true,
         "outDir": "./dist",
         "rootDir": "./src",
         "esModuleInterop": true,
-        "baseUrl": ".",
-        "incremental": true,
         "skipLibCheck": true
     },
     "include": ["src/**/*.ts"],

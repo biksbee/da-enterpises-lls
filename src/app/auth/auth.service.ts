@@ -78,15 +78,16 @@ export class AuthService {
         const jwtData = this.jwtService.verify<{id: string}>(data.refreshToken, secret)
         //@ts-ignore
         const [user] = await this.getById(jwtData.id)
-        const token = await this.sessionService.getByToken({
+        //@ts-ignore
+        const [token] = await this.sessionService.getByToken({
             token: data.refreshToken,
             providerId: PROVIDERS_TYPE.REFRESH
         });
         if (!token) {
-            next(HttpException.unauthorizedException('Invalid refresh token'))
+            return next(HttpException.unauthorizedException('Invalid refresh token'))
         }
         if (Moment().isSameOrAfter(token['expiresAt'])) {
-            next(HttpException.unauthorizedException('Refresh token was expired'))
+            return next(HttpException.unauthorizedException('Refresh token was expired'))
         }
         await this.sessionService.delete(token['id']);
         return this.get(user.id, fingerprint)

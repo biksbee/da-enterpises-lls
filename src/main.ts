@@ -36,7 +36,7 @@ const main: Application = express();
         const authGuard = new AuthGuard();
         main.use((req, res, next) => authGuard.use(req, res, next));
 
-        await DatabaseModule.initialize();
+        DatabaseModule.connect();
         await new AppModule(main).init();
 
         main.use(HandlingErrorMiddleware)

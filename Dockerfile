@@ -4,12 +4,14 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+COPY tsconfig.json ./
 
 COPY src ./src
+
+RUN npm install
 
 RUN npm run build
 
 EXPOSE 3501
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]

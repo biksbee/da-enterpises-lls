@@ -3,7 +3,6 @@ import * as path from "node:path";
 import {DatabaseModule} from "../database/database.module";
 import {HttpException} from "../../common/exceptions/http-exception.middleware";
 import * as fs from "node:fs";
-import Moment from "moment";
 
 export class FileStorageService {
     private readonly storagePath = path.resolve(__dirname, '../../../uploads');
@@ -12,6 +11,9 @@ export class FileStorageService {
     }
 
     async getById(id: number, next: NextFunction) {
+        if (!id) {
+            next(HttpException.badRequestException('Invalid Id value'))
+        }
         //@ts-ignore
         const [file] = await DatabaseModule.query(
             `SELECT * FROM files WHERE id = ?`,
@@ -43,18 +45,20 @@ export class FileStorageService {
     async upload(file: Express.Multer.File, { id: userId }: {id: string}, next: NextFunction) {
         const filePath = path.join(this.storagePath, file.filename);
         await DatabaseModule.query(`
-            INSERT INTO files (name, extension, mimeType, size, uploadDate, path, userId) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `, [file.originalname, path.extname(file.originalname), file.mimetype, file.size, new Date(), filePath, userId])
+            INSERT INTO files (name, extension, mimeType, size, uploadDate,fileName, path, userId) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [file.originalname, path.extname(file.originalname), file.mimetype, file.size, new Date(), file.filename, filePath, userId])
         return await this.getByFilePath(filePath, next)
     }
 
     async list(data: { count: number, page: number }, next: NextFunction) {
+        //@ts-ignore
+        const [{count}] = await DatabaseModule.query(`SELECT COUNT(*) AS count FROM files`)
         return {
             rows: await DatabaseModule.query(`
                 SELECT * FROM files LIMIT ? OFFSET ?
             `, [data.count, data.page]),
-            count: data.count
+            count
         }
     }
     

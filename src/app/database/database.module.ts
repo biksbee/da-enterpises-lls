@@ -51,6 +51,7 @@ export class DatabaseModule {
             for (const query of sqlStatements) {
                 try {
                   await this.query(query)
+                  console.log('Table create success')
                 } catch (error) {
                     console.error(`Query ${query} HAS ERROR:\n${error}`)
                 }
