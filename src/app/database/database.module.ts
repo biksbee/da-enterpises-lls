@@ -19,28 +19,4 @@ export class DatabaseModule {
             models: [UsersModel, SessionModel, ProviderModel, FileStorageModel]
         })
     }
-
-    // static async initialize(): Promise<void> {
-    //     try {
-    //         const queries = fs.readFileSync('src/app/database/queries.sql', "utf-8");
-    //
-    //         const sqlStatements = queries
-    //             .split(";")
-    //             .map(query => query.trim())
-    //             .filter(query => query.length > 0)
-    //
-    //         for (const query of sqlStatements) {
-    //             try {
-    //               await this.query(query)
-    //               console.log('Table create success')
-    //             } catch (error) {
-    //                 console.error(`Query ${query} HAS ERROR:\n${error}`)
-    //             }
-    //         }
-    //
-    //     } catch (error) {
-    //         console.error('Error initializing databases:', error);
-    //         throw error;
-    //     }
-    // }
 }

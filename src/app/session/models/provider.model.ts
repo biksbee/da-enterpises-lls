@@ -1,4 +1,4 @@
-import {BelongsToMany, Column, DataType, HasMany, Model, Table} from "sequelize-typescript";
+import {Column, DataType, HasMany, Model, Table} from "sequelize-typescript";
 import {SessionModel} from "./session.model";
 
 @Table({
@@ -8,8 +8,9 @@ import {SessionModel} from "./session.model";
 })
 export class ProviderModel extends Model {
     @Column({
+        autoIncrement: true,
         primaryKey: true,
-        type: DataType.NUMBER
+        type: DataType.INTEGER
     })
     id: number;
 

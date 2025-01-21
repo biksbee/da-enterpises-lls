@@ -9,8 +9,9 @@ import {ProviderModel} from "./provider.model";
 })
 export class SessionModel extends Model {
     @Column({
+        autoIncrement: true,
         primaryKey: true,
-        type: DataType.NUMBER
+        type: DataType.INTEGER
     })
     id: number;
 

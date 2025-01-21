@@ -45,7 +45,7 @@ const main: Application = express();
 
         const provider = await ProviderModel.findByPk(PROVIDERS_TYPE.REFRESH)
         if (!provider) {
-            await ProviderModel.create({id: PROVIDERS_TYPE.REFRESH, name: 'REFRESH', lifetime: process.env.REFRESH_TOKEN_LIFE_TIME})
+            await ProviderModel.create({name: 'REFRESH', lifetime: process.env.REFRESH_TOKEN_LIFE_TIME})
         }
 
         main.use(HandlingErrorMiddleware)

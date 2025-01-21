@@ -9,7 +9,7 @@ import {UsersModel} from "../auth/users.model";
 })
 export class FileStorageModel extends Model {
     @Column({
-        type: DataType.NUMBER,
+        type: DataType.INTEGER,
         primaryKey: true,
         autoIncrement: true
     })
