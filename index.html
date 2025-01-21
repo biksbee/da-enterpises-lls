@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Routes Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin: 5px 0;
+        }
+        input {
+            margin-bottom: 10px;
+        }
+        .result {
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+<h1>API Routes Test</h1>
+
+<!-- Auth Routes -->
+<div class="container">
+    <h2>Auth Routes</h2>
+    <div>
+        <span>id:</span>
+        <span id="authConfirmId"></span>
+    </div>
+    <div>
+        <span>accessToken:</span>
+        <span id="authConfirmAccess"></span>
+    </div>
+    <div>
+        <span>refreshToken:</span>
+        <span id="authConfirmRefresh"></span>
+    </div>
+    <!-- Example for Login Route -->
+    <div class="button-container">
+        <h4>Авторизация</h4>
+        <label for="authLoginId">ID(может быть номером телефона или почтой)</label>
+        <input type="text" id="authLoginId" placeholder="Enter email or phone">
+        <label for="authLoginPassword">Password:</label>
+        <input type="password" id="authLoginPassword" placeholder="Enter password">
+        <button onclick="callAuthLogin()">singIn</button>
+    </div>
+
+    <div class="button-container">
+        <h4>Регистрация</h4>
+        <label for="authRegId">ID(может быть номером телефона или почтой):</label>
+        <input type="text" id="authRegId" placeholder="Enter email or phone">
+        <label for="authLoginPassword">Password:</label>
+        <input type="password" id="authRegPassword" placeholder="Enter password">
+        <button onclick="callRegLogin()">singUp</button>
+    </div>
+
+    <div class="button-container">
+        <h4>Восстановление токена (signin/new_token) для этого необходимо быть авторизированным</h4>
+        <button onclick="callRefresh()">new_token</button>
+    </div>
+
+    <div class="button-container">
+        <h4>Получение id</h4>
+        <p>
+            Если вы уже прошли регистрацию или авторизацию, то просто нажмите на кнопку
+            <button onclick="callInfo()">info</button>
+            <button onclick="callInfoFull()">get data from storage</button>
+        </p>
+    </div>
+    <div class="button-container">
+        <h4>Выход</h4>
+        <p>
+            Если вы уже прошли регистрацию или авторизацию, то просто нажмите на кнопку
+            <button onclick="callLogout()">log out</button>
+        </p>
+    </div>
+
+    <div class="result" id="authResult"></div>
+</div>
+
+<!-- File Storage Routes -->
+<h1>File Storage API Tester</h1>
+
+<!-- /list -->
+<div class="container">
+    <h3>List Files</h3>
+    <label for="list_size">List Size:</label>
+    <input type="number" id="list_size" placeholder="Default: 10">
+    <label for="page">Page:</label>
+    <input type="number" id="page" placeholder="Default: 1">
+    <button onclick="listFiles()">List</button>
+    <div id="list_result" class="result">
+        <img src="http://localhost:3501/upload/1" alt="im" width="100" height="100">
+    </div>
+</div>
+
+<!-- /download/:id -->
+<div class="route">
+    <h3>Download File</h3>
+    <label for="download_id">File ID:</label>
+    <input type="number" id="download_id">
+    <button onclick="downloadFile()">Download</button>
+    <div id="download_result" class="result"></div>
+</div>
+
+<!-- /:id -->
+<div class="route">
+    <h3>Get File Info</h3>
+    <label for="file_id">File ID:</label>
+    <input type="number" id="file_id">
+    <button onclick="getFileInfo()">Get Info</button>
+    <div id="file_info_result" class="result"></div>
+</div>
+
+<!-- /upload -->
+<div class="route">
+    <h3>Upload File</h3>
+    <label for="upload_file">Select File:</label>
+    <input type="file" id="upload_file">
+    <button onclick="uploadFile()">Upload</button>
+    <div id="upload_file_result" class="result"></div>
+</div>
+
+<!-- /update/:id -->
+<div class="route">
+    <h3>Update File</h3>
+    <label for="update_id">File ID:</label>
+    <input type="number" id="update_id">
+    <label for="update_file">Select New File:</label>
+    <input type="file" id="update_file">
+    <button onclick="updateFile()">Update</button>
+    <div id="update_result" class="result"></div>
+</div>
+
+<!-- /delete/:id -->
+<div class="route">
+    <h3>Delete File</h3>
+    <label for="delete_id">File ID:</label>
+    <input type="number" id="delete_id">
+    <button onclick="deleteFile()">Delete</button>
+    <div id="delete_result" class="result"></div>
+</div>
+
+<script>
+    const API_BASE = 'http://localhost:3501/file'; // Update this URL if needed
+
+    async function listFiles() {
+        const listSize = document.getElementById('list_size').value ?? 10;
+        const page = document.getElementById('page').value ?? 1;
+        const response = await fetch(`${API_BASE}/list?list_size=${listSize}&page=${page}`);
+        document.getElementById('list_result').textContent = await response.text();
+    }
+
+    async function downloadFile() {
+        const id = document.getElementById('download_id').value;
+        const response = await fetch(`${API_BASE}/download/${id}`);
+        document.getElementById('download_result').textContent = await response.text();
+    }
+
+    async function getFileInfo() {
+        const id = document.getElementById('file_id').value;
+        if(!id) {
+            document.getElementById('file_info_result').textContent = 'Invalid id value';
+        } else {
+            const response = await fetch(`${API_BASE}/${id}`);
+            document.getElementById('file_info_result').textContent = await response.text();
+        }
+    }
+
+    async function uploadFile() {
+        const file = document.getElementById('upload_file').files[0];
+        const formData = new FormData();
+        if (!localStorage.getItem('accessToken')){
+            return document.getElementById('upload_file_result').textContent = 'Not valid accessToken';
+        }
+        formData.append('file', file);
+        const response = await fetch(`${API_BASE}/upload`, {
+            method: 'POST',
+            headers: {
+                "Content-Type":  "multipart/form-data",
+                "secured": 1,
+                "auth-access-token": `${localStorage.getItem('accessToken')}`
+            },
+            body: formData
+        });
+        document.getElementById('upload_file_result').textContent = await response.text();
+    }
+
+    async function updateFile() {
+        const id = document.getElementById('update_id').value;
+        const file = document.getElementById('update_file').files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await fetch(`${API_BASE}/update/${id}`, {
+            method: 'PUT',
+            body: formData
+        });
+        document.getElementById('update_result').textContent = await response.text();
+    }
+
+    async function deleteFile() {
+        const id = document.getElementById('delete_id').value;
+        const response = await fetch(`${API_BASE}/delete/${id}`, {
+            method: 'DELETE'
+        });
+        document.getElementById('delete_result').textContent = await response.text();
+    }
+</script>
+
+<script>
+    async function callRegLogin() {
+        const id = document.getElementById('authRegId').value
+        const password = document.getElementById('authRegPassword').value
+
+        const response = await fetch('http://localhost:3501/auth/singup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'secured': 0
+            },
+            body: JSON.stringify({id, password}),
+        })
+
+        const result = await response.json()
+        localStorage.setItem('accessToken', result.accessToken)
+        localStorage.setItem('refreshToken', result.refreshToken)
+        document.getElementById('authConfirmAccess').textContent = JSON.stringify(localStorage.getItem('accessToken') || 'Данных нет')
+        document.getElementById('authConfirmRefresh').textContent = JSON.stringify(localStorage.getItem('refreshToken') || 'Данных нет')
+        document.getElementById('authResult').textContent = JSON.stringify(result, null, 2)
+    }
+
+    async function callAuthLogin() {
+        const id = document.getElementById('authLoginId').value
+        const password = document.getElementById('authLoginPassword').value
+
+        const response = await fetch('http://localhost:3501/auth/signin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'secured': 0
+            },
+            body: JSON.stringify({id, password}),
+        })
+
+        const result = await response.json()
+        localStorage.setItem('accessToken', result.accessToken)
+        localStorage.setItem('refreshToken', result.refreshToken)
+        document.getElementById('authConfirmId').textContent = JSON.stringify(localStorage.getItem('info') || 'Данных нет')
+        document.getElementById('authConfirmAccess').textContent = JSON.stringify(localStorage.getItem('accessToken') || 'Данных нет')
+        document.getElementById('authConfirmRefresh').textContent = JSON.stringify(localStorage.getItem('refreshToken') || 'Данных нет')
+        document.getElementById('authResult').textContent = JSON.stringify(result, null, 2)
+    }
+
+    async function callInfo() {
+        const response = await fetch('http://localhost:3501/auth/info', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'secured': 1,
+                'auth-access-token': `${localStorage.getItem('accessToken')}`
+            }
+        })
+
+        const result = await response.json()
+        localStorage.setItem('info', result.id)
+        document.getElementById('authConfirmId').textContent = JSON.stringify(localStorage.getItem('info') || 'Данных нет')
+        document.getElementById('authResult').textContent = JSON.stringify(result, null, 2)
+    }
+
+    async function callInfoFull() {
+        document.getElementById('authConfirmId').textContent = JSON.stringify(localStorage.getItem('info') || 'Данных нет')
+        document.getElementById('authConfirmAccess').textContent = JSON.stringify(localStorage.getItem('accessToken') || 'Данных нет')
+        document.getElementById('authConfirmRefresh').textContent = JSON.stringify(localStorage.getItem('refreshToken') || 'Данных нет')
+    }
+
+    async function callRefresh() {
+        const refreshToken = localStorage.getItem('refreshToken')
+
+        const response = await fetch('http://localhost:3501/auth/signin/new_token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'secured': 0
+            },
+            body: JSON.stringify({ refreshToken }),
+        })
+
+        const result = await response.json()
+        localStorage.setItem('accessToken', result.accessToken)
+        localStorage.setItem('refreshToken', result.refreshToken)
+        document.getElementById('authResult').textContent = JSON.stringify(result, null, 2)
+    }
+
+    async function callLogout() {
+
+        const response = await fetch(`http://localhost:3501/auth/logout`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'auth-access-token': `${localStorage.getItem('accessToken')}`,
+                'secured': 1,
+            }
+        })
+
+        const result = await response.json()
+        localStorage.removeItem('info')
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        document.getElementById('authConfirmId').textContent = JSON.stringify('')
+        document.getElementById('authConfirmAccess').textContent = JSON.stringify('')
+        document.getElementById('authConfirmRefresh').textContent = JSON.stringify('')
+        document.getElementById('authResult').textContent = JSON.stringify(result, null, 2)
+    }
+</script>
+
+</body>
+</html>
