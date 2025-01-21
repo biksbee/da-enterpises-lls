@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS  providers (
 );
 
 INSERT IGNORE INTO providers (id, name, lifetime)
-    VALUES (1, 'REFRESH', '1d');
+    VALUES (1, 'REFRESH', '1h');
 
 CREATE TABLE IF NOT EXISTS  users (
     id VARCHAR(255) PRIMARY KEY,

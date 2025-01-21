@@ -1,4 +1,3 @@
-import {DatabaseModule} from "../database/database.module";
 import dcrypt from 'bcrypt'
 import {AuthResponse, UserResponse} from "./auth.response";
 import {AuthType} from "./auth.type";
@@ -9,6 +8,7 @@ import {JwtService} from "../../common/service/jwt.service";
 import {HttpException} from "../../common/exceptions/http-exception.middleware";
 import {NextFunction} from "express";
 import Moment from "moment";
+import {UsersModel} from "./users.model";
 
 export class AuthService {
     constructor(
@@ -18,13 +18,7 @@ export class AuthService {
     }
 
     async getById(id: string): Promise<UserResponse> {
-        // @ts-ignore
-        return await DatabaseModule.query<UserResponse[]>(
-            `SELECT *
-             FROM users
-             WHERE id = ? LIMIT 1`,
-            [id]
-        )
+        return await UsersModel.findOne({where: {id}})
     }
 
     async generateToken(payload: { id: string }, expiresIn: string) {
@@ -39,8 +33,7 @@ export class AuthService {
 
     async get(id: string, fingerprint: string, next?: NextFunction): Promise<AuthResponse> {
         const accessTokenLifeTime = process.env.TOKEN_LIFE_TIME;
-        //@ts-ignore
-        const [provider] = await this.sessionService.getProvider(PROVIDERS_TYPE.REFRESH)
+        const provider = await this.sessionService.getProvider(PROVIDERS_TYPE.REFRESH)
         const refreshToken = await this.generateToken({id}, provider['lifetime'])
         await this.sessionService.create({
             token: refreshToken,
@@ -56,8 +49,7 @@ export class AuthService {
     }
 
     async login(data: AuthType, fingerprint: string, next: NextFunction) {
-        //@ts-ignore
-        const [user] = await this.getById(data.id);
+        const user = await this.getById(data.id);
         if (!user) {
             return next(HttpException.notFoundException(`User with ID ${data.id} not found`));
         }
@@ -76,10 +68,8 @@ export class AuthService {
     async refresh(data: {refreshToken: string}, fingerprint: string, next?: NextFunction) {
         const secret = process.env.TOKEN_SECRET;
         const jwtData = this.jwtService.verify<{id: string}>(data.refreshToken, secret)
-        //@ts-ignore
-        const [user] = await this.getById(jwtData.id)
-        //@ts-ignore
-        const [token] = await this.sessionService.getByToken({
+        const user = await this.getById(jwtData.id)
+        const token = await this.sessionService.getByToken({
             token: data.refreshToken,
             providerId: PROVIDERS_TYPE.REFRESH
         });
@@ -95,15 +85,14 @@ export class AuthService {
 
     async create(data: AuthType, fingerprint: string, next: NextFunction) {
         const candidate = await this.getById(data.id)
-        if (candidate[0]) {
+        if (candidate) {
             return next(HttpException.badRequestException())
         }
         const passwordHash = await dcrypt.hash(data.password, 10)
-        await DatabaseModule.query(
-            `INSERT INTO users (id, password)
-             values (?, ?)`,
-            [data.id, passwordHash]
-        )
+        await UsersModel.create({
+            id: data.id,
+            password: passwordHash
+        })
         return await this.get(data.id, fingerprint)
     }
 

@@ -9,6 +9,8 @@ import {HandlingErrorMiddleware} from "./common/middleware/handling-error.middle
 import {AuthGuard} from "./common/guards/auth.guard";
 import path from "path";
 import helmet from "helmet";
+import {ProviderModel} from "./app/session/models/provider.model";
+import {PROVIDERS_TYPE} from "./common/constants";
 
 const port = process.env.PORT || 3502
 
@@ -36,8 +38,15 @@ const main: Application = express();
         const authGuard = new AuthGuard();
         main.use((req, res, next) => authGuard.use(req, res, next));
 
-        DatabaseModule.connect();
+
+        await DatabaseModule.connect().authenticate();
+        await DatabaseModule.connect().sync();
         await new AppModule(main).init();
+
+        const provider = await ProviderModel.findByPk(PROVIDERS_TYPE.REFRESH)
+        if (!provider) {
+            await ProviderModel.create({id: PROVIDERS_TYPE.REFRESH, name: 'REFRESH', lifetime: process.env.REFRESH_TOKEN_LIFE_TIME})
+        }
 
         main.use(HandlingErrorMiddleware)
 

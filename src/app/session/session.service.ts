@@ -3,43 +3,40 @@ import {SessionCreateType, SessionDeleteSameType, SessionGetByTokenType} from ".
 import CryptoJS from 'crypto-js';
 import Moment from 'moment';
 import ms from "ms";
+import {ProviderModel} from "./models/provider.model";
+import {SessionModel} from "./models/session.model";
 
 
 
 export class SessionService {
     async getProvider(id: number) {
-        return await DatabaseModule.query(
-            `SELECT * FROM providers WHERE id = ?`,
-            [id]
-        )
+        return await ProviderModel.findByPk(id)
     }
     async create(data: SessionCreateType) {
         const secret = process.env.REFRESH_TOKEN_SECRET
-        //@ts-ignore
-        const [provider] = await this.getProvider(data.providerId);
+        const provider = await this.getProvider(data.providerId);
         data.token = CryptoJS
             .HmacSHA512(data.token, secret)
             .toString(CryptoJS.enc.Base64)
-        const lifetime = provider.lifetime ? ms(provider.lifetime) : null
+        const lf = provider.lifetime as ms.StringValue
+        const lifetime = provider.lifetime ? ms(lf) : null
         const expiresAt = provider.lifetime ? Moment().add(lifetime, 'ms').toDate() : null
         const fingerprint = data.fingerprint
             ? CryptoJS
                 .SHA512(data.fingerprint)
                 .toString(CryptoJS.enc.Base64)
             : null
-        return DatabaseModule.query(
-            `
-                    INSERT INTO sessions (providerId, fingerprint, expiresAt, userId, token)
-                    VALUES (?, ?, ?, ?, ?)
-            `, [provider.id, fingerprint, expiresAt, data.userId, data.token]
-        )
+        return await SessionModel.create({
+            providerId: provider.id,
+            fingerprint,
+            expiresAt,
+            userId: data.userId,
+            token: data.token
+        })
     }
 
     async delete(id: number) {
-        return await DatabaseModule.query(
-            `DELETE FROM sessions WHERE id = ?`,
-            [id]
-        )
+        return await SessionModel.destroy({ where: {id}})
     }
 
     async getByToken(data: SessionGetByTokenType) {
@@ -47,11 +44,12 @@ export class SessionService {
         data.token = CryptoJS
             .HmacSHA512(data.token, secret)
             .toString(CryptoJS.enc.Base64)
-        return await DatabaseModule.query(`
-            SELECT * FROM sessions WHERE token = ? AND providerId = ? 
-            LIMIT 1
-            `, [data.token, data.providerId]
-        )
+        return await SessionModel.findOne({
+            where: {
+                token: data.token,
+                providerId: data.providerId
+            }
+        })
     }
 
     async deleteSame(data: SessionDeleteSameType) {
@@ -60,9 +58,12 @@ export class SessionService {
                 .SHA512(data.fingerprint)
                 .toString(CryptoJS.enc.Base64)
             : null
-        return await DatabaseModule.query(
-            `DELETE FROM sessions WHERE userId = ? AND providerId = ? AND fingerprint = ?`,
-            [data.userId, data.providerId, fingerprint]
-        )
+        return await SessionModel.destroy({
+            where: {
+                userId: data.userId,
+                providerId: data.providerId,
+                fingerprint
+            }
+        })
     }
 }
